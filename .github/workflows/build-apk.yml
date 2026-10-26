@@ -28,11 +28,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 👇 新增修复步骤：自动升级 Gradle Wrapper 与规避 AGP 新 DSL 校验
+      # 替换 Gradle 下载源为腾讯云镜像，并规避 AGP 新 DSL 校验
       - name: Patch Gradle configs
         run: |
-          sed -i 's/gradle-8.10.2-all.zip/gradle-8.14.0-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
-          sed -i 's/gradle-8.10.2-bin.zip/gradle-8.14.0-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+          sed -i 's|distributionUrl=.*|distributionUrl=https\\://mirrors.cloud.tencent.com/gradle/gradle-8.14.0-bin.zip|' android/gradle/wrapper/gradle-wrapper.properties
           echo "android.newDsl=false" >> android/gradle.properties
 
       - name: Build APK
