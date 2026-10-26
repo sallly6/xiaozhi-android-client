@@ -28,11 +28,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 修复 Gradle 版本校验与下载源
+      # 配置 Gradle 镜像源与超时时间
       - name: Patch Gradle configs
         run: |
-          sed -i 's|distributionUrl=.*|distributionUrl=https://services.gradle.org/distributions/gradle-8.14.0-bin.zip|' android/gradle/wrapper/gradle-wrapper.properties
+          sed -i 's|distributionUrl=.*|distributionUrl=https\\://mirrors.cloud.tencent.com/gradle/gradle-8.14-bin.zip|' android/gradle/wrapper/gradle-wrapper.properties
           echo "android.newDsl=false" >> android/gradle.properties
+          # 增加网络超时时间，避免因网络波动导致失败
+          echo "networkTimeout=60000" >> android/gradle/wrapper/gradle-wrapper.properties
 
       - name: Build APK
         run: flutter build apk --release
