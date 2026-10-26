@@ -28,10 +28,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 替换 Gradle 下载源为腾讯云镜像，并规避 AGP 新 DSL 校验
+      # 修复 Gradle 版本校验与下载源
       - name: Patch Gradle configs
         run: |
-          sed -i 's|distributionUrl=.*|distributionUrl=https\\://mirrors.cloud.tencent.com/gradle/gradle-8.14.0-bin.zip|' android/gradle/wrapper/gradle-wrapper.properties
+          sed -i 's|distributionUrl=.*|distributionUrl=https://services.gradle.org/distributions/gradle-8.14.0-bin.zip|' android/gradle/wrapper/gradle-wrapper.properties
           echo "android.newDsl=false" >> android/gradle.properties
 
       - name: Build APK
