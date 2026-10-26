@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:   # 或者你原来的 job 名称
+  build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # 关键：赋予写入权限，允许推送到 gh-pages 分支
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,13 +28,18 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # 👇 新增修复步骤：自动升级 Gradle Wrapper 与规避 AGP 新 DSL 校验
+      - name: Patch Gradle configs
+        run: |
+          sed -i 's/gradle-8.10.2-all.zip/gradle-8.14.0-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/gradle-8.10.2-bin.zip/gradle-8.14.0-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+          echo "android.newDsl=false" >> android/gradle.properties
+
       - name: Build APK
         run: flutter build apk --release
 
-      - name: Deploy to GitHub Pages
-        uses: crazy-max/ghaction-github-pages@v4
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
         with:
-          target_branch: gh-pages   # 注意这里是下划线，不是短横线
-          build_dir: docs   # 根据你的实际构建输出目录调整
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
