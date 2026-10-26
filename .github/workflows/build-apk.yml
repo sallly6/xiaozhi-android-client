@@ -28,16 +28,23 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 配置 Gradle 镜像源与超时时间
-      - name: Patch Gradle configs
+      # 修复 Gradle 与 AGP 版本
+      - name: Patch Gradle and AGP configs
         run: |
+          # 1. 指定 Gradle 镜像源与超时
           sed -i 's|distributionUrl=.*|distributionUrl=https\\://mirrors.cloud.tencent.com/gradle/gradle-8.14-bin.zip|' android/gradle/wrapper/gradle-wrapper.properties
-          echo "android.newDsl=false" >> android/gradle.properties
-          # 增加网络超时时间，避免因网络波动导致失败
           echo "networkTimeout=60000" >> android/gradle/wrapper/gradle-wrapper.properties
+          
+          # 2. 升级 AGP 版本到 8.11.1 (关键修复)
+          sed -i 's/com.android.application") version "8.7.0"/com.android.application") version "8.11.1"/g' android/settings.gradle.kts
+          sed -i 's/com.android.application") version "8.7.0"/com.android.application") version "8.11.1"/g' android/settings.gradle
+          sed -i 's/classpath "com.android.tools.build:gradle:8.7.0"/classpath "com.android.tools.build:gradle:8.11.1"/g' android/build.gradle
+          
+          # 3. 规避新版 DSL 校验
+          echo "android.newDsl=false" >> android/gradle.properties
 
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
